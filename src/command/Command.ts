@@ -1,4 +1,3 @@
-
 export type Command = 'init' | 'add';
 export type CommandDispatcher = (args: string[], options: { key: string, value?: string }[]) => unknown;
 const CommandList: Command[] = ['init', 'add'];
