@@ -9,9 +9,6 @@ const commandOptionRegistry: { command: Command, options: CommandOption[] }[] = 
 
 /**
  * コマンドのオプション登録を行う。
- * @param command 
- * @param options 
- * @returns 
  */
 export const registerCommandOption = (command: Command, options: CommandOption[]) => {
   options.forEach(({ option }) => {
@@ -57,11 +54,21 @@ export const interpretCommandArgs = (commandArgs: string[]): { command: Command,
         const key = item.substring(0, item.indexOf('='));
         const value = item.substring(item.indexOf('=') + 1);
         addOption(key, value);
+        i++
       } else {
-
+        const key = item;
+        if (commandOptions.options.find((v) => v.option === key)?.hasArg) {
+          const value = commandArgs[i + 1];
+          addOption(key, value);
+          i += 2;
+        } else {
+          addOption(key);
+          i++;
+        }
       }
     } else { // その他
       args.push(item);
+      i++
     }
   }
 
