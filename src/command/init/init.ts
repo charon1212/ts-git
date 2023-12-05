@@ -1,12 +1,16 @@
-import { CommandDispatcher } from "../Command";
-import { registerCommandOption } from "../CommandArgs";
 import * as fs from 'fs';
+import { Command } from "commander";
 
-registerCommandOption('init', []);
+export const commander_init = (command: Command) => {
+  command
+    .command('init')
+    .argument('[root]', 'root directory', '.')
+    .action((root: string) => {
+      init(root);
+    });
+};
 
-export const commandInit: CommandDispatcher = (args, options) => {
-
-  const root = args[0] || '.';
+const init = (root: string) => {
   if (fs.existsSync(`${root}/.git`)) {
     throw new Error(`既にリポジトリが存在します: ${`${root}/.git`}`);
   }
@@ -14,5 +18,4 @@ export const commandInit: CommandDispatcher = (args, options) => {
   fs.mkdirSync(`${root}/.git/objects`);
   fs.mkdirSync(`${root}/.git/objects/info`);
   fs.mkdirSync(`${root}/.git/objects/pack`);
-
 };

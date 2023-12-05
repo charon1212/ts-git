@@ -1,9 +1,8 @@
-import { dispatchCommand } from "./command/Command";
-import { interpretCommandArgs } from "./command/CommandArgs";
+import { addCommands, execCommand } from "./command/Commander";
 
 const index = () => {
-  const { command, args, options } = interpretCommandArgs(process.argv.slice(2));
-  dispatchCommand(command, args, options);
+  addCommands();
+  execCommand();
 };
 
 index();
