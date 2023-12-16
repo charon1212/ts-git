@@ -17,6 +17,7 @@
     "@types/node": "^20.10.2"
   },
   "dependencies": {
-    "commander": "^11.1.0"
+    "commander": "^11.1.0",
+    "util-charon1212": "^1.21.0"
   }
 }
