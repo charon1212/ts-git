@@ -1,4 +1,4 @@
-import { gzip, gunzip } from "zlib";
+import { inflate, deflate } from "zlib";
 
 /**
  * 参考: <https://www.yoheim.net/blog.php?q=20141002>
@@ -9,7 +9,7 @@ import { gzip, gunzip } from "zlib";
  */
 export const zip = async (buf: Buffer): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
-    gzip(buf, (err, buf) => {
+    deflate(buf, (err, buf) => {
       if (err) reject(err);
       else resolve(buf);
     });
@@ -21,7 +21,7 @@ export const zip = async (buf: Buffer): Promise<Buffer> => {
  */
 export const unzip = async (buf: Buffer): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
-    gunzip(buf, (err, buf) => {
+    inflate(buf, (err, buf) => {
       if (err) reject(err);
       else resolve(buf);
     });
