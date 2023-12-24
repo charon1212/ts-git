@@ -34,12 +34,12 @@ export const parseGitObjectCommitContent = (buf: Buffer): GitObjectCommitContent
   while (true) {
     const indexLf = buf.indexOf('\n', index);
     if (indexLf === -1) break; // 改行が存在しないのは、コミットメッセージが空文字の場合のみ。
-    if (indexLf === 0) { // 空行の場合、この行以降はすべてコミットメッセージと判定する。
+    if (indexLf === index) { // 空行の場合、この行以降はすべてコミットメッセージと判定する。
       content.message = buf.subarray(indexLf + 1).toString();
       break;
     }
     const line = buf.subarray(index, indexLf).toString();
-    const indexSpace = buf.indexOf(' ');
+    const indexSpace = line.indexOf(' ');
     const key = line.slice(0, indexSpace);
     const value = line.slice(indexSpace + 1);
 
