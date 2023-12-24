@@ -32,7 +32,7 @@ export const parseGitObjectCommitContent = (buf: Buffer): GitObjectCommitContent
   let index = 0;
   const content: GitObjectCommitContent = { tree: createGitHash(''), parents: [], message: '' };
   while (true) {
-    const indexLf = buf.indexOf('\n');
+    const indexLf = buf.indexOf('\n', index);
     if (indexLf === -1) break; // 改行が存在しないのは、コミットメッセージが空文字の場合のみ。
     if (indexLf === 0) { // 空行の場合、この行以降はすべてコミットメッセージと判定する。
       content.message = buf.subarray(indexLf + 1).toString();
