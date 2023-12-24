@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import { Command } from "commander";
 import { decodeGitIndex } from '../../domain/gitIndex/decodeGitIndex';
 import { join } from 'path';
+import { GitObjectDataStore } from '../../domain/gitObject/GitObjectDataStore';
+import { getGitPath } from '../../domain/gitPath';
+import { createGitHash } from '../../domain/gitObject/gitObject';
 
 /**
  * 勉強用の、独自コマンド。
@@ -13,30 +16,32 @@ export const commander_explore = (command: Command) => {
     .requiredOption('-d, --directory <directory>')
     .option('--hash <hash>')
     .option('--show-index')
-    .action((args: ExploreOptions) => {
-      explore(args);
+    .action(async (args: ExploreOptions) => {
+      await explore(args);
     });
 };
 
-type ExploreOptions = { directory: string, hash: string, showIndex: boolean };
-const explore = (args: ExploreOptions) => {
+type ExploreOptions = { directory: string, hash?: string, showIndex?: boolean };
+const explore = async (args: ExploreOptions) => {
   console.log(`explore: ${JSON.stringify({ args })}`);
   const { directory, hash, showIndex } = args;
-  const dotGitDir = `${directory}/.git`
-  if (!fs.existsSync(dotGitDir)) throw new Error('dot git dir not exists.');
+
+  const gitPath = getGitPath(directory);
+  const gitObjectDataStore = new GitObjectDataStore(gitPath);
+  if (!fs.existsSync(gitPath.git.path)) throw new Error('dot git dir not exists.');
 
   if (showIndex) {
-    const indexFilePath = `${dotGitDir}/index`;
-    const bufIndexFile = fs.readFileSync(indexFilePath);
+    const bufIndexFile = fs.readFileSync(gitPath.git.index.path);
     const decodedIndex = decodeGitIndex(bufIndexFile);
     console.log(JSON.stringify({ decodedIndex }));
     return;
   }
 
   if (hash) {
-    const path = join(dotGitDir, 'objects', hash.slice(0, 2), hash.slice(2));
-    
+    const gitHash = createGitHash(hash);
+    console.log({ path: gitPath.fromHash(gitHash) });
+    const gitObject = await gitObjectDataStore.read(gitHash);
+    console.log(JSON.stringify({ gitObject }));
   }
-
 
 };
