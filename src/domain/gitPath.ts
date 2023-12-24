@@ -11,10 +11,10 @@ export const getGitPath = (rootDir?: string) => ({
       path: join(rootDir ?? cwd, '.git', 'objects'),
     },
     HEAD: {
-      path: join(rootDir ?? cwd, 'HEAD'),
+      path: join(rootDir ?? cwd, '.git', 'HEAD'),
     },
     index: {
-      path: join(rootDir ?? cwd, 'index'),
+      path: join(rootDir ?? cwd, '.git', 'index'),
     },
   },
   fromHash: (gitHash: GitHash) => join(rootDir ?? cwd, '.git', 'objects', gitHash.slice(0, 2), gitHash.slice(2)),
