@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import { Command } from "commander";
 import { decodeGitIndex } from '../../domain/gitIndex/decodeGitIndex';
-import { getGitPathFromHash } from '../../domain/gitPath';
-import { GitHash } from '../../domain/gitObject/gitObject';
 import { join } from 'path';
 
 /**

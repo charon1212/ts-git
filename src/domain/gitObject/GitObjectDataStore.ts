@@ -1,11 +1,9 @@
 import { writeFileSync, readFileSync } from 'fs';
-import { GitHash, GitObject, createGitHash, isGitObjectType } from "./gitObject";
-import { createSha1 } from "../../util/sha1";
-import { createGitObjectBlobContent, parseGitObjectBlobContent } from "./gitObjectBlob";
-import { createGitObjectTreeContent, parseGitObjectTreeContent } from "./gitObjectTree";
-import { createGitObjectCommitContent, parseGitObjectCommitContent } from "./gitObjectCommit";
-import { getGitPathFromHash } from '../gitPath';
+import { GitHash, GitObject, } from "./gitObject";
+import { GitPath, getGitPath } from '../gitPath';
 import { unzip, zip } from '../../util/gzip';
+import { decodeGitObject } from './decodeGitObject';
+import { encodeGitObject } from './encodeGitObject';
 
 /**
  * GitObjectのKey-Value型データストアの実装。
@@ -13,51 +11,27 @@ import { unzip, zip } from '../../util/gzip';
  * 本クラスは、新たなデータを追加してそのハッシュ値を取得するaddメソッドと、ハッシュ値からデータを取得するreadメソッドを実装する。
  * TODO: deleteが必要かどうかは要調査…
  */
-class GitObjectDataStore {
-  async add(object: GitObject): Promise<GitHash> {
-    const content = getGitObjectContent(object);
-    const data = object.type + " " + content.length + "\0" + content;
-    const sha1 = createSha1(data);
-    const gitHash = createGitHash(sha1);
+export class GitObjectDataStore {
 
-    // 保存処理
-    const zipData = await zip(Buffer.from(data));
-    const path = getGitPathFromHash(gitHash);
+  private gitPath: GitPath;
+  constructor(root?: string) {
+    this.gitPath = getGitPath(root);
+  };
+
+  async add(gitObject: GitObject): Promise<GitHash> {
+    const { buffer, gitHash } = encodeGitObject(gitObject);
+    const zipData = await zip(buffer);
+    const path = this.gitPath.fromHash(gitHash);
     writeFileSync(path, zipData);
-
     return gitHash;
   }
 
   async read(gitHash: GitHash): Promise<GitObject> {
-    const path = getGitPathFromHash(gitHash);
+    const path = this.gitPath.fromHash(gitHash);
     const zipData = readFileSync(path);
     const unzipData = await unzip(zipData);
-
-    const indexSpace = unzipData.indexOf(' ');
-    if (indexSpace < 0) throw new Error('gitObjectのフォーマットエラー(半角スペースなし)');
-    const indexNull = unzipData.indexOf('\0');
-    if (indexNull < 0) throw new Error('gitObjectのフォーマットエラー(ヌル文字なし)');
-
-    const typeBuf = unzipData.subarray(0, indexSpace);
-    const contentBuf = unzipData.subarray(indexNull + 1);
-
-    // type
-    const type = typeBuf.toString();
-    if (!isGitObjectType(type)) throw new Error('gitObjectのフォーマットエラー(不明なtype)');
-
-    if (type === 'blob') return { type, content: parseGitObjectBlobContent(contentBuf) };
-    if (type === 'tree') return { type, content: parseGitObjectTreeContent(contentBuf) };
-    if (type === 'commit') return { type, content: parseGitObjectCommitContent(contentBuf) };
-    throw new Error(`未定義のGitObjectType:` + type);
+    return decodeGitObject(unzipData);
   }
-};
-
-const getGitObjectContent = (object: GitObject): string | Buffer => {
-  const { type } = object;
-  if (type === 'blob') return createGitObjectBlobContent(object);
-  if (type === 'tree') return createGitObjectTreeContent(object);
-  if (type === 'commit') return createGitObjectCommitContent(object);
-  throw new Error(`未定義のGitObjectType:` + type);
 };
 
 export const gitObjectDataStore = new GitObjectDataStore();

@@ -13,7 +13,7 @@ export type GitObjectTreeEntry = {
   name: string,
 };
 
-export const createGitObjectTreeContent = (object: GitObjectTree) => object.content.map(({ mode, hash, name }) => `${mode} ${name}\0${hash}`).join('');
+export const createGitObjectTreeContent = (object: GitObjectTree) => Buffer.from(object.content.map(({ mode, hash, name }) => `${mode} ${name}\0${hash}`).join(''));
 
 export const parseGitObjectTreeContent = (buf: Buffer): GitObjectTreeContent => {
   const content: GitObjectTreeContent = [];

@@ -25,7 +25,7 @@ export const createGitObjectCommitContent = (object: GitObjectCommit) => {
   array.push('');
   array.push(object.content.message);
 
-  return array.join('\n');
+  return Buffer.from(array.join('\n'));
 };
 
 export const parseGitObjectCommitContent = (buf: Buffer): GitObjectCommitContent => {
