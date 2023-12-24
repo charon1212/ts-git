@@ -1,6 +1,6 @@
 import { writeFileSync, readFileSync } from 'fs';
 import { GitHash, GitObject, } from "./gitObject";
-import { GitPath, getGitPath } from '../gitPath';
+import { GitPath, gitPath as defaultGitPath } from '../gitPath';
 import { unzip, zip } from '../../util/gzip';
 import { decodeGitObject } from './decodeGitObject';
 import { encodeGitObject } from './encodeGitObject';
@@ -13,9 +13,9 @@ import { encodeGitObject } from './encodeGitObject';
  */
 export class GitObjectDataStore {
 
-  private gitPath: GitPath;
-  constructor(root?: string) {
-    this.gitPath = getGitPath(root);
+  private gitPath: GitPath
+  constructor(gitPath?: GitPath) {
+    this.gitPath = gitPath ?? defaultGitPath;
   };
 
   async add(gitObject: GitObject): Promise<GitHash> {
