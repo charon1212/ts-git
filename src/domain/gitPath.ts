@@ -1,24 +1,34 @@
 import { join } from 'path';
 import { GitHash } from './gitObject/gitObject';
 
-const cwd = process.cwd();
-
 /** 各種パス */
-export const getGitPath = (rootDir?: string) => ({
-  git: {
-    path: join(rootDir ?? cwd, '.git'),
-    objects: {
-      path: join(rootDir ?? cwd, '.git', 'objects'),
-    },
-    HEAD: {
-      path: join(rootDir ?? cwd, '.git', 'HEAD'),
-    },
-    index: {
-      path: join(rootDir ?? cwd, '.git', 'index'),
-    },
-  },
-  fromHash: (gitHash: GitHash) => join(rootDir ?? cwd, '.git', 'objects', gitHash.slice(0, 2), gitHash.slice(2)),
-});
-
-export type GitPath = ReturnType<typeof getGitPath>;
-export const gitPath = getGitPath();
+export class GitPath {
+  private rootDir = process.cwd();
+  constructor(rootDir?: string) {
+    if (rootDir) this.rootDir = rootDir;
+  }
+  setRoot(rootDir: string) {
+    this.rootDir = rootDir;
+  }
+  get rootPath() {
+    return this.rootDir;
+  }
+  fromHash(gitHash: GitHash) {
+    return join(this.rootDir, '.git', 'objects', gitHash.slice(0, 2), gitHash.slice(2));
+  }
+  get git() {
+    return {
+      path: join(this.rootDir, '.git'),
+      objects: {
+        path: join(this.rootDir, '.git', 'objects'),
+      },
+      HEAD: {
+        path: join(this.rootDir, '.git', 'HEAD'),
+      },
+      index: {
+        path: join(this.rootDir, '.git', 'index'),
+      },
+    };
+  } 　
+}
+export const gitPath = new GitPath();
