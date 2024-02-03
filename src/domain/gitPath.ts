@@ -33,7 +33,6 @@ export class GitPath {
     };
   }
 }
-export const gitPath = new GitPath();
 
 /**
  * 引数のディレクトリを起点に親ディレクトリをたどり、Gitリポジトリを探す。
@@ -43,3 +42,5 @@ const findGitRepository = (dirPath: string): Result<string, string> => {
   const parent = resolve(dirPath, "..");
   return dirPath === parent ? er('Gitリポジトリが存在しません。') : findGitRepository(parent);
 };
+
+export const gitPath = new GitPath();
