@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import { Command } from "commander";
 import { decodeGitIndex } from '../../domain/gitIndex/decodeGitIndex';
-import { join } from 'path';
 import { GitObjectDataStore } from '../../domain/gitObject/GitObjectDataStore';
-import { getGitPath } from '../../domain/gitPath';
+import { GitPath } from '../../domain/gitPath';
 import { createGitHash } from '../../domain/gitObject/gitObject';
 
 /**
@@ -26,7 +25,7 @@ const explore = async (args: ExploreOptions) => {
   console.log(`explore: ${JSON.stringify({ args })}`);
   const { directory, hash, showIndex } = args;
 
-  const gitPath = getGitPath(directory);
+  const gitPath = new GitPath(directory);
   const gitObjectDataStore = new GitObjectDataStore(gitPath);
   if (!fs.existsSync(gitPath.git.path)) throw new Error('dot git dir not exists.');
 
@@ -41,7 +40,11 @@ const explore = async (args: ExploreOptions) => {
     const gitHash = createGitHash(hash);
     console.log({ path: gitPath.fromHash(gitHash) });
     const gitObject = await gitObjectDataStore.read(gitHash);
-    console.log(JSON.stringify({ gitObject }));
+    if (gitObject.type === 'blob') {
+      console.log(JSON.stringify({ gitObject, buffer: gitObject.content.toString() }));
+    } else {
+      console.log(JSON.stringify({ gitObject }));
+    }
   }
 
 };
