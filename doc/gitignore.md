@@ -60,7 +60,7 @@ gitignoreファイルの各行は特定のパターンを指定する。
 
 ### CONFIGURATION
 
-オプション設定値`core.excludesFile`は、``$GIT_DIR/info/exclude`と同様に、除外するファイル名のパターンを含む無視ファイルのパスを記載します。
+オプション設定値`core.excludesFile`は、`$GIT_DIR/info/exclude`と同様に、除外するファイル名のパターンを含む無視ファイルのパスを記載します。
 
 ### NOTES
 
