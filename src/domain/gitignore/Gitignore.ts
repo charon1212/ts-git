@@ -32,7 +32,7 @@ export type GitignorePattern = {
   isOnlyDirectory: boolean,
   /** trueの場合、開始・中間のいずれかに「/」を含むgitignoreパターンであり、このパターンは.gitignoreファイル等のソースからの相対パスで判定することを意味する。 */
   relative: boolean,
-  /** 判定対象のマッチング文字列。末尾の「/」は常に含まないものとする。（//で終わる変なパターンを除き） */
+  /** 判定対象のマッチング文字列。先頭・末尾の「/」は常に含まないものとする。（//で終わる変なパターンを除き） */
   exp: string,
   /** ソースに記載されていた元の形式のpattern */
   source: string,

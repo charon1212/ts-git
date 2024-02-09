@@ -2,33 +2,35 @@ import { join, resolve } from 'path';
 import { GitHash } from './gitObject/gitObject';
 import { Result, er, ok } from '../util/SimpleResult';
 import { existsSync } from 'fs';
+import { TsGitPath } from './filePath/TsGitPath';
 
-/** 各種パス */
+/**
+ * Gitが内部で利用するファイルのパスなどをまとめたクラス。
+ */
 export class GitPath {
-  private rootDir = process.cwd();
-  constructor(rootDir?: string) {
-    this.rootDir = rootDir ?? findGitRepository(process.cwd()).unwrap();
-  }
-  setRoot(rootDir: string) {
-    this.rootDir = rootDir;
-  }
-  get rootPath() {
-    return this.rootDir;
+  /** Gitリポジトリのパス。このパスは文字列で保持し、TsGitPathを使わないこと。（TsGitPathがこのrootDirを使って変換しているため、循環参照になる。） */
+  public readonly rootAbsPath: string;
+  public readonly root: TsGitPath;
+  private readonly dotgit: TsGitPath;
+  constructor(root?: string) {
+    this.rootAbsPath = root ?? findGitRepository(process.cwd()).unwrap();
+    this.root = TsGitPath.fromRep(this);
+    this.dotgit = TsGitPath.fromRep(this, '.git');
   }
   fromHash(gitHash: GitHash) {
-    return join(this.rootDir, '.git', 'objects', gitHash.slice(0, 2), gitHash.slice(2));
+    return this.dotgit.child('objects', gitHash.slice(0, 2), gitHash.slice(2));
   }
   get git() {
     return {
-      path: join(this.rootDir, '.git'),
+      path: this.dotgit,
       objects: {
-        path: join(this.rootDir, '.git', 'objects'),
+        path: this.dotgit.child('objects'),
       },
       HEAD: {
-        path: join(this.rootDir, '.git', 'HEAD'),
+        path: this.dotgit.child('HEAD'),
       },
       index: {
-        path: join(this.rootDir, '.git', 'index'),
+        path: this.dotgit.child('index'),
       },
     };
   }

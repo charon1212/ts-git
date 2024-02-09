@@ -1,6 +1,6 @@
 import { Gitignore, GitignorePattern } from "./Gitignore";
 import wcmatch from 'wildcard-match';
-import { basename } from 'path';
+import { TsGitPath } from "../filePath/TsGitPath";
 
 /**
  * 対象のファイル/ディレクトリパスが、gitignore上で無視されるか判定する。
@@ -10,10 +10,10 @@ import { basename } from 'path';
  * @param isDir このパスがファイルパスの場合はfalse、ディレクトリパスの場合はtrueを指定する。
  * @returns 無視するパターンの場合はtrue、そうでない場合はfalse。
  */
-export const isIgnore = (path: string, gitignore: Gitignore, isDir: boolean): boolean => {
+export const isIgnore = (path: TsGitPath, gitignore: Gitignore, isDir: boolean): boolean => {
 
   /** 検査対象とするgitignoreパターンソースは、prefix未指定か、またはパスがprefixから始まる場合のみ */
-  const targetSource = gitignore.sources.filter((source) => source.prefix === '' || path.startsWith(source.prefix));
+  const targetSource = gitignore.sources.filter((source) => source.prefix === '' || path.rep.startsWith(source.prefix));
   /** gitignoreパターンソースを、処理順に並べる。処理順は、基本的に優先順位の順に行い、時点で階層の浅い.gitignoreファイルから順に処理する。（より深い.gitignoreファイルで上書きする） */
   targetSource.sort((source1, source2) => {
     if (source1.priority !== source2.priority) return source1.priority - source2.priority;
@@ -33,7 +33,7 @@ export const isIgnore = (path: string, gitignore: Gitignore, isDir: boolean): bo
   return isIgnore;
 };
 
-const matchPattern = (path: string, pattern: GitignorePattern, isDir: boolean): boolean => {
+const matchPattern = (path: TsGitPath, pattern: GitignorePattern, isDir: boolean): boolean => {
   if (pattern.isOnlyDirectory && !isDir) return false;
-  return wcmatch(pattern.exp)(pattern.relative ? path : basename(path));
+  return wcmatch(pattern.exp)(pattern.relative ? path.rep : path.basename());
 };

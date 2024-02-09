@@ -6,7 +6,7 @@ export const loadGitignore = (gitPath: GitPath): Gitignore => {
   const gitignore: Gitignore = { sources: [], };
 
   // TODO: いったんルートの.gitignoreファイルからの読み込みのみとする。他のソース（下位ディレクトリの.gitignoreや、.git/info/exclude等）は後で実装。
-  const gitignoreFilePath = `${gitPath.rootPath}/.gitignore`;
+  const gitignoreFilePath = gitPath.root.child('.gitignore').abs;
   if (existsSync(gitignoreFilePath)) {
     const patterns = readGitignoreFile(readFileSync(gitignoreFilePath).toString());
     gitignore.sources.push({ priority: 2, prefix: '', patterns });
@@ -42,8 +42,9 @@ const parseGitignorePattern = (patternStr: string): GitignorePattern | null => {
   /** 末尾の「/」を判定 */
   const isOnlyDirectory = patternStr.endsWith('/');
   if (isOnlyDirectory) patternStr = patternStr.slice(0, -1);
-  /** 途中に「/」がある、相対パス判定のパターンであるかを判定 */
+  /** 途中に「/」がある、相対パス判定のパターンであるかを判定。先頭の「/」は取り除く。 */
   const relative = patternStr.includes('/');
+  if (patternStr.startsWith('/')) patternStr = patternStr.slice(1);
 
   return { not, isOnlyDirectory, relative, source, exp: patternStr };
 };

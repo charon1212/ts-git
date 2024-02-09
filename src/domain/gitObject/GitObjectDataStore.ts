@@ -21,13 +21,13 @@ export class GitObjectDataStore {
   async add(gitObject: GitObject): Promise<GitHash> {
     const { buffer, gitHash } = encodeGitObject(gitObject);
     const zipData = await zip(buffer);
-    const path = this.gitPath.fromHash(gitHash);
+    const path = this.gitPath.fromHash(gitHash).abs;
     writeFileSync(path, zipData);
     return gitHash;
   }
 
   async read(gitHash: GitHash): Promise<GitObject> {
-    const path = this.gitPath.fromHash(gitHash);
+    const path = this.gitPath.fromHash(gitHash).abs;
     const zipData = readFileSync(path);
     const unzipData = await unzip(zipData);
     return decodeGitObject(unzipData);

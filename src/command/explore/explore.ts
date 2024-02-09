@@ -27,10 +27,10 @@ const explore = async (args: ExploreOptions) => {
 
   const gitPath = new GitPath(directory);
   const gitObjectDataStore = new GitObjectDataStore(gitPath);
-  if (!fs.existsSync(gitPath.git.path)) throw new Error('dot git dir not exists.');
+  if (!fs.existsSync(gitPath.git.path.abs)) throw new Error('dot git dir not exists.');
 
   if (showIndex) {
-    const bufIndexFile = fs.readFileSync(gitPath.git.index.path);
+    const bufIndexFile = fs.readFileSync(gitPath.git.index.path.abs);
     const decodedIndex = decodeGitIndex(bufIndexFile);
     console.log(JSON.stringify({ decodedIndex }));
     return;
