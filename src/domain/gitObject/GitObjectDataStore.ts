@@ -1,4 +1,5 @@
-import { writeFileSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
 import { GitHash, GitObject, } from "./gitObject";
 import { GitPath, gitPath as defaultGitPath } from '../gitPath';
 import { unzip, zip } from '../../util/gzip';
@@ -22,6 +23,7 @@ export class GitObjectDataStore {
     const { buffer, gitHash } = encodeGitObject(gitObject);
     const zipData = await zip(buffer);
     const path = this.gitPath.fromHash(gitHash).abs;
+    mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, zipData);
     return gitHash;
   }
