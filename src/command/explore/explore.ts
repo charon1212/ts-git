@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { resolve } from 'path';
 import { Command } from "commander";
 import { decodeGitIndex } from '../../domain/gitIndex/decodeGitIndex';
 import { GitObjectDataStore } from '../../domain/gitObject/GitObjectDataStore';
@@ -24,8 +25,9 @@ type ExploreOptions = { directory: string, hash?: string, showIndex?: boolean };
 const explore = async (args: ExploreOptions) => {
   console.log(`explore: ${JSON.stringify({ args })}`);
   const { directory, hash, showIndex } = args;
+  const directoryPath = resolve(directory);
 
-  const gitPath = new GitPath(directory);
+  const gitPath = new GitPath(directoryPath);
   const gitObjectDataStore = new GitObjectDataStore(gitPath);
   if (!fs.existsSync(gitPath.git.path.abs)) throw new Error('dot git dir not exists.');
 
