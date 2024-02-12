@@ -13,7 +13,7 @@ export class GitPath {
   public readonly root: TsGitPath;
   private readonly dotgit: TsGitPath;
   constructor(root?: string) {
-    this.rootAbsPath = root ?? findGitRepository(process.cwd()).unwrap();
+    this.rootAbsPath = root ? resolve(root) : findGitRepository(process.cwd()).unwrap();
     this.root = TsGitPath.fromRep(this);
     this.dotgit = TsGitPath.fromRep(this, '.git');
   }
@@ -25,6 +25,8 @@ export class GitPath {
       path: this.dotgit,
       objects: {
         path: this.dotgit.child('objects'),
+        info: { path: this.dotgit.child('objects', 'info') },
+        pack: { path: this.dotgit.child('objects', 'pack') },
       },
       HEAD: {
         path: this.dotgit.child('HEAD'),
@@ -32,6 +34,13 @@ export class GitPath {
       index: {
         path: this.dotgit.child('index'),
       },
+      refs: {
+        path: this.dotgit.child('refs'),
+        heads: { path: this.dotgit.child('refs', 'heads') },
+        tags: { path: this.dotgit.child('refs', 'tags') },
+      },
+      config: { path: this.dotgit.child('config') },
+      description: { path: this.dotgit.child('description') },
     };
   }
 }
