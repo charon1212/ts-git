@@ -1,4 +1,4 @@
-import { sep as sepOs } from 'path';
+import { dirname, sep as sepOs } from 'path';
 import { GitPath } from '../gitPath';
 
 const sepTsGit = '/';
@@ -37,9 +37,15 @@ export class TsGitPath {
     return this.repPath === '';
   }
 
+  /** 親ディレクトリのパスを取得する */
+  parent(): TsGitPath {
+    if (this.isRoot()) throw new Error('リポジトリルートの親ディレクトリは、TsGitPathの範囲外です。');
+    if (this.repPath.includes('/')) return new TsGitPath('', this.gitPath);
+    return new TsGitPath(dirname(this.repPath), this.gitPath);
+  }
   /** パスに子要素を追加する */
   child(...paths: string[]): TsGitPath {
-    if (this.repPath === '') return TsGitPath.fromRep(this.gitPath, ...paths);
+    if (this.isRoot()) return TsGitPath.fromRep(this.gitPath, ...paths);
     else return TsGitPath.fromRep(this.gitPath, this.repPath, ...paths);
   }
   /** ファイル名/ディレクトリ名を取得する */
