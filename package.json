@@ -10,7 +10,7 @@
     "start": "tsc && node build/index.js",
     "build": "tsc",
     "test": "jest",
-    "s-test": "jest scenario.test.ts"
+    "s-test": "npm run build && npm link && jest scenario.test.ts"
   },
   "keywords": [],
   "author": "",
