@@ -5,6 +5,10 @@ export type GitIndex = {
   entries: GitIndexEntry[],
 };
 
+/**
+ * GitIndexの各エントリを示す。
+ * <https://github.com/git/git/blob/v2.43.0/Documentation/gitformat-index.txt#L52>
+ */
 export type GitIndexEntry = {
   /** ファイルステータスが最後に変更された時刻 */
   ctimeSeconds: number,
