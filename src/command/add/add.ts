@@ -2,11 +2,15 @@ import { Command } from "commander";
 import { gitPath } from "../../domain/gitPath";
 import { loadGitignore } from "../../domain/gitignore/loadGitignore";
 import { getAllNotIgnoreFilePath } from "../../domain/filePath/getAllNotIgnoreFilePath";
-import { gitIndexFile } from "../../domain/gitIndex/GitIndexFile";
+import { GitIndexFile } from "../../domain/gitIndex/GitIndexFile";
 import { createGitIndexEntry } from "../../domain/gitIndex/createGitIndexEntry";
 import { GitObjectBlob } from "../../domain/gitObject/gitObjectBlob";
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { gitObjectDataStore } from "../../domain/gitObject/GitObjectDataStore";
+import { parsePathspec } from "../../domain/pathspec/parsePathspec";
+import { TsGitPath } from "../../domain/filePath/TsGitPath";
+import { GitIndexEntry } from "../../domain/gitIndex/gitIndex";
+import { evalPathInPathspec } from "../../domain/pathspec/evalPathspec";
 
 export const commander_add = (command: Command) => {
   command
@@ -20,20 +24,50 @@ export const commander_add = (command: Command) => {
 
 type ExploreOptions = [string[], { test: string }];
 const add = async ([pathspecStrList, { test }]: ExploreOptions) => {
-  console.warn('現在、pathspecによる制限は未実装です。すべてのファイルについてindexを更新します。');
+
+  if (pathspecStrList.length === 0) throw new Error('No pathspec specified.');
+  const pathspecList = pathspecStrList.map((str) => parsePathspec(str));
+
+  // GitIndexFile初期化
+  const gitIndexFile = new GitIndexFile(gitPath);
+  gitIndexFile.read();
+
+  // 更新対象のパスリスト
+  const updatePath: TsGitPath[] = [];
+  const deleteEntries: GitIndexEntry[] = [];
+
+  // 既存のIndexEntryの更新・削除
+  gitIndexFile.index.entries.forEach((entry) => {
+    const path = TsGitPath.fromRep(gitPath, entry.pathName);
+    if (!evalPathInPathspec(pathspecList, path)) return; // pathspec範囲外なら早期return
+    if (existsSync(path.abs)) {
+      // TODO: もうちょっと吟味。ファイルの更新日とかで判定したい。
+      updatePath.push(path);
+      deleteEntries.push(entry);
+    } else {
+      deleteEntries.push(entry);
+    }
+  });
+
+  // 新規のIndexEntry追加
   const gitignore = loadGitignore(gitPath);
   const filePathList = getAllNotIgnoreFilePath(gitPath, gitignore);
-  /**
-   * TODO: ここら辺、いろんな要素が未考慮なので直したい。
-   * - pathspecによる制限を行っていないため、リポジトリ配下の全ファイルが対象になっている。
-   * - 問答無用で前のindexを破棄して塗り替えている。
-   * - 更新されたファイルのみ処理するとかない。後、毎回GitBlobObjectを作り直している。
-   */
-  const gitIndexEntries = await Promise.all(filePathList.map(async (filePath) => {
-    const gitObjectBlob: GitObjectBlob = { type: 'blob', content: readFileSync(filePath.abs) };
+  updatePath.push(...filePathList.filter((path) => !gitIndexFile.index.entries.some((entry) => entry.pathName === path.rep)))
+
+  // 更新対象パスリストのすべてのパスについて、IndexEntryを作成する。
+  const entries = await Promise.all(updatePath.map(async (path) => {
+    const gitObjectBlob: GitObjectBlob = { type: 'blob', content: readFileSync(path.abs) };
     const hash = await gitObjectDataStore.add(gitObjectBlob);
-    return createGitIndexEntry(filePath, hash, 'regular')
+    return createGitIndexEntry(path, hash, 'regular')
   }));
-  gitIndexFile.update(() => ({ entries: gitIndexEntries, }));
+
+  // 更新追加
+  const newIndex = gitIndexFile.index;
+  newIndex.entries = newIndex.entries.filter((entry) => !deleteEntries.includes(entry));
+  newIndex.entries.push(...entries);
+  gitIndexFile.index = newIndex;
+
+  // 書き込み
+  gitIndexFile.write();
 
 };
