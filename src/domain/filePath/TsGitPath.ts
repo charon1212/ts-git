@@ -1,8 +1,8 @@
-import { dirname, sep as sepOs } from 'path';
+import { myPath } from '../../util/MyPath';
 import { GitPath } from '../gitPath';
 
 const sepTsGit = '/';
-const gregSepOs = new RegExp(`\\${sepOs}`, 'g');
+const gregSepOs = new RegExp(`\\${myPath.sep}`, 'g');
 const gregSepTsGit = new RegExp(`\\${sepTsGit}`, 'g');
 
 /**
@@ -25,7 +25,7 @@ export class TsGitPath {
   /** 絶対パスを取得する */
   get abs(): string {
     if (this.repPath === '') return this.gitPath.rootAbsPath;
-    else return this.gitPath.rootAbsPath + sepOs + this.repPath.replace(gregSepTsGit, sepOs);
+    else return this.gitPath.rootAbsPath + myPath.sep + this.repPath.replace(gregSepTsGit, myPath.sep);
   }
   /** Gitリポジトリからの相対パスを取得する。 */
   get rep(): string {
@@ -41,7 +41,7 @@ export class TsGitPath {
   parent(): TsGitPath {
     if (this.isRoot()) throw new Error('リポジトリルートの親ディレクトリは、TsGitPathの範囲外です。');
     if (this.repPath.includes('/')) return new TsGitPath('', this.gitPath);
-    return new TsGitPath(dirname(this.repPath), this.gitPath);
+    return new TsGitPath(myPath.dirname(this.repPath), this.gitPath);
   }
   /** パスに子要素を追加する */
   child(...paths: string[]): TsGitPath {
@@ -57,9 +57,9 @@ export class TsGitPath {
 
   /** 絶対パスから作成する。 */
   static fromAbs(gitPath: GitPath, ...paths: string[]): TsGitPath {
-    const path = paths.join(sepOs);
+    const path = paths.join(myPath.sep);
     if (path === gitPath.rootAbsPath) return new TsGitPath('', gitPath);
-    const pathPrefix = gitPath.rootAbsPath + sepOs;
+    const pathPrefix = gitPath.rootAbsPath + myPath.sep;
     if (!path.startsWith(pathPrefix)) throw new Error('対象のパスはTsGitPathで扱う対象外です。TsGitPathの対象は常にGitリポジトリ内でなければなりません。(リポジトリルートも禁止)');
     const repPath = path.slice((pathPrefix).length).replace(gregSepOs, sepTsGit);
     return new TsGitPath(repPath, gitPath);

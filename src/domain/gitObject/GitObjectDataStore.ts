@@ -1,10 +1,10 @@
 import { writeFileSync, readFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
 import { GitHash, GitObject, } from "./gitObject";
 import { GitPath, gitPath as defaultGitPath } from '../gitPath';
 import { unzip, zip } from '../../util/gzip';
 import { decodeGitObject } from './decodeGitObject';
 import { encodeGitObject } from './encodeGitObject';
+import { myPath } from '../../util/MyPath';
 
 /**
  * GitObjectのKey-Value型データストアの実装。
@@ -23,7 +23,7 @@ export class GitObjectDataStore {
     const { buffer, gitHash } = encodeGitObject(gitObject);
     const zipData = await zip(buffer);
     const path = this.gitPath.fromHash(gitHash).abs;
-    mkdirSync(dirname(path), { recursive: true });
+    mkdirSync(myPath.dirname(path), { recursive: true });
     writeFileSync(path, zipData);
     return gitHash;
   }

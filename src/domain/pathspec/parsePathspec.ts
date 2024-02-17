@@ -1,5 +1,5 @@
+import { myPath } from "../../util/MyPath";
 import { Pathspec, PathspecMagic } from "./Pathspec";
-import { resolve, sep } from 'path';
 
 /**
  * pathspecの文字列表現から、pathspecオブジェクトを作成する。
@@ -21,13 +21,13 @@ export const parsePathspec = (exp: string): Pathspec => {
   }
 
   // 末尾に「/」があるpathspecはディレクトリのみ判定する
-  const onlyDirectory = exp.endsWith('/') || exp.endsWith(sep);
+  const onlyDirectory = exp.endsWith('/') || exp.endsWith(myPath.sep);
   if (onlyDirectory) exp = exp.slice(0, -1);
 
   // 判定用の正規表現を取得。
   const flags = magic.icase ? 'i' : '';
-  const patternFile = regexEscape(resolve(exp), magic.literal);
-  const patternDir = regexEscape(resolve(exp), magic.literal) + sep + '*';
+  const patternFile = regexEscape(myPath.resolve(exp), magic.literal);
+  const patternDir = regexEscape(myPath.resolve(exp), magic.literal) + myPath.sep + '*';
   const regexFile = onlyDirectory ? undefined : new RegExp(patternFile, flags);
   const regexDir = new RegExp(patternDir, flags);
 

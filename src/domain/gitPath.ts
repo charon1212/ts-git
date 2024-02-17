@@ -1,8 +1,8 @@
-import { join, resolve } from 'path';
 import { GitHash } from './gitObject/gitObject';
 import { Result, er, ok } from '../util/SimpleResult';
 import { existsSync } from 'fs';
 import { TsGitPath } from './filePath/TsGitPath';
+import { myPath } from '../util/MyPath';
 
 /**
  * Gitが内部で利用するファイルのパスなどをまとめたクラス。
@@ -13,7 +13,7 @@ export class GitPath {
   public readonly root: TsGitPath;
   private readonly dotgit: TsGitPath;
   constructor(root?: string) {
-    this.rootAbsPath = root ? resolve(root) : findGitRepository(process.cwd()).unwrap();
+    this.rootAbsPath = root ? myPath.resolve(root) : findGitRepository(process.cwd()).unwrap();
     this.root = TsGitPath.fromRep(this);
     this.dotgit = TsGitPath.fromRep(this, '.git');
   }
@@ -49,8 +49,8 @@ export class GitPath {
  * 引数のディレクトリを起点に親ディレクトリをたどり、Gitリポジトリを探す。
  */
 const findGitRepository = (dirPath: string): Result<string, string> => {
-  if (existsSync(join(dirPath, ".git"))) return ok(dirPath);
-  const parent = resolve(dirPath, "..");
+  if (existsSync(myPath.join(dirPath, ".git"))) return ok(dirPath);
+  const parent = myPath.resolve(dirPath, "..");
   return dirPath === parent ? er('Gitリポジトリが存在しません。') : findGitRepository(parent);
 };
 
