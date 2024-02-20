@@ -25,29 +25,53 @@ export const parsePathspec = (exp: string): Pathspec => {
   if (onlyDirectory) exp = exp.slice(0, -1);
 
   // 判定用の正規表現を取得。
+  const resolvePath = myPath.resolve(exp);
   const flags = magic.icase ? 'i' : '';
-  const patternFile = regexEscape(myPath.resolve(exp), magic.literal);
-  const patternDir = regexEscape(myPath.resolve(exp), magic.literal) + myPath.sep + '*';
-  const regexFile = onlyDirectory ? undefined : new RegExp(patternFile, flags);
-  const regexDir = new RegExp(patternDir, flags);
+  const patternFile = getRegexPattern(resolvePath, getMap(magic.literal));
+  const patternDir = patternFile + `\\${myPath.sep}.*`;
+  const regexFile = onlyDirectory ? undefined : new RegExp(`^${patternFile}$`, flags);
+  const regexDir = new RegExp(`^${patternDir}$`, flags);
 
   return { exp, empty: false, regexFile, regexDir, magic };
 };
 
-const pathspecRegexEscapeCharacters = ['\\', '^', '$', ',', '.', '+', '(', ')', '[', ']', '{', '}', '|', '/'];
-const pathspecRegexEscapeCharactersLiteral = ['*', '?',];
 /**
- * pathspec用の正規表現エスケープ。対象は以下の内、特殊記号のエスケープのみ採用。
+ * 正規表現のエスケープ対象特殊記号の一覧。
  * <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_escape>
  */
-const regexEscape = (str: string, literal: boolean,): string => {
-  pathspecRegexEscapeCharacters.forEach((esc) => {
-    str = str.replace(new RegExp(`\\${esc}`, 'g'), `\\${esc}`);
-  });
-  if (literal) {
-    pathspecRegexEscapeCharactersLiteral.forEach((esc) => {
-      str = str.replace(new RegExp(`\\${esc}`, 'g'), `\\${esc}`);
-    });
-  }
-  return str;
+const mapRegexEscape: { [key in string]: string } = {
+  '\\': '\\\\',
+  '^': '\\^',
+  '$': '\\$',
+  ',': '\\,',
+  '.': '\\.',
+  '+': '\\+',
+  '(': '\\(',
+  ')': '\\)',
+  '[': '\\[',
+  ']': '\\]',
+  '{': '\\{',
+  '}': '\\}',
+  '|': '\\|',
+  '/': '\\/',
+};
+/**
+ * getRegexPatternで利用する変換表を作成する。
+ * @param isMagicLiteral literal magicを利用したpathspecであればtrue、そうでなければfalse。
+ */
+const getMap = (isMagicLiteral: boolean) => ({
+  ...mapRegexEscape,
+  '*': isMagicLiteral ? '\\*' : '.*',
+  '?': isMagicLiteral ? '\\?' : '.',
+});
+/**
+ * pathspecを表す文字列から、判定を行う正規表現パターンを取得する。
+ * @param source pathspec文字列。
+ * @param map 変換表を示すmapオブジェクト。このオブジェクトのKeyは、1文字で構成すること。
+ * @returns 正規表現のパターン
+ */
+const getRegexPattern = (source: string, map: { [key in string]: string }) => {
+  let result = '';
+  for (let i = 0; i < source.length; i++) result += map[source[i]] ?? source[i];
+  return result;
 };
