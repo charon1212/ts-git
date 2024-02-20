@@ -53,5 +53,3 @@ const findGitRepository = (dirPath: string): Result<string, string> => {
   const parent = myPath.resolve(dirPath, "..");
   return dirPath === parent ? er('Gitリポジトリが存在しません。') : findGitRepository(parent);
 };
-
-export const gitPath = new GitPath();

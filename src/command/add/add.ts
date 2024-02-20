@@ -1,16 +1,16 @@
 import { Command } from "commander";
-import { gitPath } from "../../domain/gitPath";
 import { loadGitignore } from "../../domain/gitignore/loadGitignore";
 import { getAllNotIgnoreFilePath } from "../../domain/filePath/getAllNotIgnoreFilePath";
 import { GitIndexFile } from "../../domain/gitIndex/GitIndexFile";
 import { createGitIndexEntry } from "../../domain/gitIndex/createGitIndexEntry";
 import { GitObjectBlob } from "../../domain/gitObject/gitObjectBlob";
 import { existsSync, readFileSync } from 'fs';
-import { gitObjectDataStore } from "../../domain/gitObject/GitObjectDataStore";
+import { GitObjectDataStore } from "../../domain/gitObject/GitObjectDataStore";
 import { parsePathspec } from "../../domain/pathspec/parsePathspec";
 import { TsGitPath } from "../../domain/filePath/TsGitPath";
 import { GitIndexEntry } from "../../domain/gitIndex/gitIndex";
 import { evalPathInPathspec } from "../../domain/pathspec/evalPathspec";
+import { GitPath } from "../../domain/gitPath";
 
 export const commander_add = (command: Command) => {
   command
@@ -27,6 +27,9 @@ const add = async ([pathspecStrList, { test }]: ExploreOptions) => {
 
   if (pathspecStrList.length === 0) throw new Error('No pathspec specified.');
   const pathspecList = pathspecStrList.map((str) => parsePathspec(str));
+
+  // git path
+  const gitPath = new GitPath();
 
   // GitIndexFile初期化
   const gitIndexFile = new GitIndexFile(gitPath);
@@ -57,7 +60,7 @@ const add = async ([pathspecStrList, { test }]: ExploreOptions) => {
   // 更新対象パスリストのすべてのパスについて、IndexEntryを作成する。
   const entries = await Promise.all(updatePath.map(async (path) => {
     const gitObjectBlob: GitObjectBlob = { type: 'blob', content: readFileSync(path.abs) };
-    const hash = await gitObjectDataStore.add(gitObjectBlob);
+    const hash = await new GitObjectDataStore(gitPath).add(gitObjectBlob);
     return createGitIndexEntry(path, hash, 'regular')
   }));
 
